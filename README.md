@@ -119,43 +119,6 @@ This codebase requires Python 3.8+ and the following libraries:
 Mixed precision training and GPU acceleration (e.g., RTX 3090) are recommended.
 
 
-## Usage
-
-1. **Preprocess fMRI Data**
-```bash
-python 1-preprocess_naturalistic_fmri.py
-```
-
-2. **Load Data and Labels**
-```bash
-python 2-load-data.py
-```
-
-3. **Train CNN Model**
-```bash
-python 3-train_voxel_time_cnn.py
-```
-
-4. **Run Integrated Gradients Attribution**
-```bash
-python 4-integrated_gradients.py
-```
-
-5. **Reconstruct Brain-Space IG Maps**
-```bash
-python 5-revert-IG-tobrain.py
-```
-
-6. **Average Maps Across Time**
-```bash
-python 6-average_IG_per_subject.py
-```
-
-7. **Visualize Surface Projections**
-```bash
-python 7-visualize_IG_surface_maps.py
-```
-
 
 ## Data Requirements
 You must supply:
