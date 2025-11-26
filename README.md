@@ -22,6 +22,28 @@ Stimuli: Movie-watching fMRI with detailed face event annotations
 Labels: 3606 10-second segments labeled as "face" or "no-face" 
 
 
+
+
+## Key Features
+
+Temporal preservation: transforms 4D fMRI → 41,489×10 voxel-time matrices
+
+Lightweight CNN: custom 2D convolutional model trained from scratch
+
+Naturalistic fMRI: based on 85 participants watching full movies from NNDb v2.0
+
+Balanced event labels: 1,803 face-onset + 1,803 face-offset trials
+
+Attribution analysis: Integrated Gradients using DeepExplain
+
+3D reconstruction: voxel-level IG maps returned to brain space (NIfTI)
+
+Surface visualization: subject-level and group-level cortical maps
+
+
+
+
+
 ## Repository Structure
 
 | File | Description |
