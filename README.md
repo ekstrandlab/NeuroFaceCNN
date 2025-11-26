@@ -44,6 +44,56 @@ Surface visualization: subject-level and group-level cortical maps
 
 
 
+
+
+## Pipeline Overview
+### 1. Preprocessing & Event Extraction
+- Uses NNDb face-presence annotations  
+- Defines face onset and face offset (≥10 s) windows  
+- Applies 4-second hemodynamic lag  
+- Extracts 10-TR (10-second) 4D segments per event
+
+### 2. Group Brain Mask
+- Built from 85 individual masks (MNI)  
+- 99% overlap threshold → 41,489 stable voxels
+
+### 3. Voxel-by-Time Transformation
+- 4D block (X×Y×Z×10) → masked (41489 × 10) matrix  
+- Stored as .npy files
+
+### 4. CNN Model
+- 2D CNN with:
+  - LeakyReLU activations  
+  - L2 weight decay  
+  - BatchNorm + Dropout  
+- 4-fold stratified cross-validation  
+- Trained on GPU with mixed precision
+
+### Performance
+- Accuracy: ~84–85%  
+- AUC: 0.91  
+- Stable training and generalization
+
+### 5. Integrated Gradients
+- DeepExplain TF1.x graph mode  
+- Attributions computed on pre-sigmoid logit  
+- Zero baseline  
+- 200 interpolation steps
+
+### 6. Reconstruction to Brain Space
+- IG matrix (41489 × 10) → 4D brain (X×Y×Z×10)  
+- Saved as NIfTI volumes  
+- Subject-average and group-level maps supported
+
+### 7. Visualization
+- Surface projections for each second
+
+
+
+
+
+
+
 ## Repository Structure
 
 | File | Description |
@@ -105,6 +155,23 @@ python 6-average_IG_per_subject.py
 ```bash
 python 7-visualize_IG_surface_maps.py
 ```
+
+
+## Data Requirements
+You must supply:
+- fMRI NIfTI files
+- Face annotations
+- Group brain mask (85_subBrainMask_average_99.nii.gz)
+  
+NNDb dataset: https://www.naturalistic-neuroimaging-database.org/
+
+
+## Results Summary
+- CNN reliably distinguishes face-onset vs. face-offset patterns  
+- Integrated Gradients highlight FFA, OFA, pSTS  
+- Consistent attribution across subjects  
+- Group maps aligned with known face-processing networks
+
 
 
 
