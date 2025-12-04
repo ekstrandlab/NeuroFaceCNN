@@ -23,7 +23,6 @@ Labels: 3606 10-second segments labeled as "face" or "no-face"
 
 
 
-
 ## Key Features
 
 Temporal preservation: transforms 4D fMRI → 41,489×10 voxel-time matrices
@@ -39,9 +38,6 @@ Attribution analysis: Integrated Gradients using DeepExplain
 3D reconstruction: voxel-level IG maps returned to brain space (NIfTI)
 
 Surface visualization: subject-level and group-level cortical maps
-
-
-
 
 
 
@@ -89,10 +85,9 @@ Surface visualization: subject-level and group-level cortical maps
 - Surface projections for each second
 
 
+### 8. Moment-by-Moment fMRI Prediction
 
-
-
-
+- Continuous decoding of face-related neural activity from naturalistic fMRI using the trained CNN model 
 
 ## Repository Structure
 
@@ -105,6 +100,7 @@ Surface visualization: subject-level and group-level cortical maps
 | `5-revert-IG-tobrain.py` | Maps 2D IG attributions back to brain space |
 | `6-average_IG_per_subject.py` | Aggregates and averages IG maps by subject |
 | `7-visualize_IG_surface_maps.py` | Projects IG maps onto fsaverage cortical surface |
+| `8-moment_by_moment_face_prediction.py` | Performs continuous CNN-based prediction across unseen fMRI |
 | `README.md` | Project overview and usage |
 
 ## Setup
@@ -134,8 +130,7 @@ NNDb dataset: https://www.naturalistic-neuroimaging-database.org/
 - Integrated Gradients highlight FFA, OFA, pSTS  
 - Consistent attribution across subjects  
 - Group maps aligned with known face-processing networks
-
-
+- Moment-by-moment predictions demonstrate continuous decoding of neural activity in naturalistic viewing  
 
 
 ## Citation
@@ -143,6 +138,5 @@ NNDb dataset: https://www.naturalistic-neuroimaging-database.org/
 If you use this code, please cite:
 
 Asadi, S. et al. (2025). *Computationally Efficient Deep Learning for Temporally Preserved Face Classification in Naturalistic fMRI*.
-
 
 
