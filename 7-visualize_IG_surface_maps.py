@@ -1,38 +1,49 @@
-import os
-from pathlib import Path
 import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
+from pathlib import Path
 from nilearn import plotting, surface, datasets, image
 from scipy.ndimage import binary_erosion
 
 
-BASE_OUT_DIR = Path("/Users/saraasadi/IG_group_results")
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+IG_ROOT = PROJECT_ROOT / "Output" / "IG-result"
+GROUP_DIR = IG_ROOT / "IG-group-results"
+
+BASE_OUT_DIR = GROUP_DIR
 BASE_OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 data_paths = {
-    "Face": BASE_OUT_DIR / "face" / "Group_Average_face_IG.nii.gz",
-    "NoFace": BASE_OUT_DIR / "noface" / "Group_Average_noface_IG.nii.gz",}
+    "Face": GROUP_DIR / "face" / "Group_Average_face_IG.nii.gz",
+    "NoFace": GROUP_DIR / "noface" / "Group_Average_noface_IG.nii.gz",
+}
 
-ffa_mask_path = "/Users/saraasadi/ffa_association-test_z_FDR_0.01.nii"
+ffa_mask_path = IG_ROOT / "ffa_association-test_z_FDR_0.01.nii"  # stored in Output/IG-result/
 
+
+# SETTINGS
 ffa_threshold = 0.5
-erosion_iter = 2  # Increase -> make the FFA region smaller 
-display_percentile = 0 # No threshold
+erosion_iter = 2          # Increase -> make the FFA region smaller
+display_percentile = 0    # 0 = no thresholding
 cmap = "RdBu"
 
 out_png = "group_averaged-IG-0-threshold-ventral.png"
 
-# temp images also live inside output dir
+# temp images inside output dir
 temp_dir = BASE_OUT_DIR / "temp_surf_images"
-temp_dir.mkdir(exist_ok=True)
+temp_dir.mkdir(parents=True, exist_ok=True)
+
 
 # HELPERS
 def load_imgs(paths_dict):
+    missing = [k for k, p in paths_dict.items() if not p.exists()]
+    if missing:
+        raise FileNotFoundError(f"Missing NIfTI files for: {missing}. Check paths in data_paths.")
     return {name: nib.load(str(p)) for name, p in paths_dict.items()}
 
 def make_eroded_mask(mask_file, iterations):
-    mimg = nib.load(mask_file)
+    mimg = nib.load(str(mask_file))
     mask = mimg.get_fdata() > 0
     erode = binary_erosion(mask, iterations=iterations)
     return nib.Nifti1Image(erode.astype(float), mimg.affine)
@@ -47,7 +58,7 @@ def proj_vol_to_surf_t(nii4d, t, fs, hemi):
     return surface.vol_to_surf(image.index_img(nii4d, t), mesh)
 
 def crop_whitespace(rgb):
-    img = np.fliplr(np.rot90(rgb, 3))    # for lateral delete fliplr and rot90 4 
+    img = np.fliplr(np.rot90(rgb, 3))  # for lateral: delete fliplr and use rot90(4)
     gray = img.mean(axis=2)
     keep = gray < 0.98
     if not np.any(keep):
@@ -89,8 +100,12 @@ def safe_percentile(arr, p):
     arr = arr[np.nonzero(arr)]
     return np.percentile(np.abs(arr), p) if arr.size else 0.0
 
+
 # MAIN
 if __name__ == "__main__":
+
+    if not ffa_mask_path.exists():
+        raise FileNotFoundError(f"FFA mask not found: {ffa_mask_path}")
 
     fs = datasets.fetch_surf_fsaverage()
     imgs = load_imgs(data_paths)
@@ -98,10 +113,7 @@ if __name__ == "__main__":
     n_tp = imgs["Face"].shape[-1]
 
     ffa_mask_img = make_eroded_mask(ffa_mask_path, erosion_iter)
-    ffa_surf = {
-        hemi: proj_mask_to_surf(ffa_mask_img, fs, hemi)
-        for hemi in ("left", "right")
-    }
+    ffa_surf = {hemi: proj_mask_to_surf(ffa_mask_img, fs, hemi) for hemi in ("left", "right")}
 
     for cond, nii in imgs.items():
 
@@ -180,4 +192,3 @@ if __name__ == "__main__":
     for p in temp_dir.glob("*.png"):
         p.unlink()
     temp_dir.rmdir()
-    
