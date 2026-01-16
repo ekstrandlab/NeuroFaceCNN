@@ -20,6 +20,8 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.utils import class_weight
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, roc_curve
 from sklearn.calibration import calibration_curve
+from pathlib import Path
+
 
 set_global_policy('mixed_float16')
 
@@ -33,10 +35,18 @@ if gpus:
     for gpu in gpus:
         tf.config.experimental.set_memory_growth(gpu, True)
 
-saving_path = r"C:\Users\sara.asadi\Desktop\base"
-base_path = r"D:\sarafiles\Face-Project"
-pickle_file = os.path.join(base_path, "fmri_data.pickle")
-with open(pickle_file, 'rb') as f:
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+MATRICES_DIR = PROJECT_ROOT / "Output" / "2D-matrices"
+PICKLE_FILE = MATRICES_DIR / "fmri_data.pickle"
+
+CNN_OUT_DIR = PROJECT_ROOT / "Output" / "CNN-result"
+CNN_OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+
+with open(PICKLE_FILE, 'rb') as f:
     data = pickle.load(f)
 X_data, y_data = data['X'], data['y']
 
@@ -95,13 +105,14 @@ best_global_model_path = None
 best_X_val, best_y_val = None, None
 best_fold_index_global = None
 
-save_dir = os.path.join(saving_path, "cv_models")
-os.makedirs(save_dir, exist_ok=True)
+save_dir = CNN_OUT_DIR / "cv_models"
+save_dir.mkdir(parents=True, exist_ok=True)
+
 
 #K-fold loop 
 fold = 1
 for train_index, val_index in skf.split(X_data, y_data):
-    print(f"\n--- Fold {fold} ---")
+    print(f"\n  Fold {fold}  ")
 
     X_train, X_val = X_data[train_index], X_data[val_index]
     y_train, y_val = y_data[train_index], y_data[val_index]
@@ -116,7 +127,7 @@ for train_index, val_index in skf.split(X_data, y_data):
     model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
 
     # Callbacks: checkpoint on best val_acc, early stop on val_loss, LR schedule
-    fold_model_path = os.path.join(save_dir, f"fold{fold}_best.keras")
+    fold_model_path = save_dir / f"fold{fold}_best.keras"
     cbs = [
         ModelCheckpoint(
             fold_model_path, monitor="val_accuracy",
@@ -139,7 +150,7 @@ for train_index, val_index in skf.split(X_data, y_data):
     )
 
     # Evaluate using the best checkpoint for this fold
-    best_fold_model = tf.keras.models.load_model(fold_model_path)
+    best_fold_model = tf.keras.models.load_model(str(fold_model_path))
     scores = best_fold_model.evaluate(X_val, y_val, verbose=0)
     val_loss, val_acc = scores[0], scores[1]
 
@@ -162,52 +173,26 @@ for train_index, val_index in skf.split(X_data, y_data):
 model.summary()
 
 #CV summary 
-print("\n--- Cross-Validation Results ---")
+print("\n  Cross-Validation Results  ")
 for i in range(k):
     print(f"Fold {i+1} — Loss: {loss_per_fold[i]:.4f}, Acc: {acc_per_fold[i]:.4f}")
 print(f"\nAverage Acc: {np.mean(acc_per_fold):.4f} ± {np.std(acc_per_fold):.4f}")
 print(f"Average Loss: {np.mean(loss_per_fold):.4f}")
 
-# Keep the single best model 
-final_model_path = os.path.join(saving_path, "best_cv_model.keras")
-shutil.copyfile(best_global_model_path, final_model_path)
+# Keep the single best model
+final_model_path = CNN_OUT_DIR / "best_cv_model.keras"
+shutil.copyfile(str(best_global_model_path), str(final_model_path))
+
 print(f"\nSaved best model (val_acc={best_global_val_acc:.4f}) to: {final_model_path}")
 print(f"Best fold index (1-based): {best_fold_index_global + 1}")
 
 #Figures & metrics for BEST FOLD 
-figdir = os.path.join(saving_path, "oct")
-os.makedirs(figdir, exist_ok=True)
+figdir = CNN_OUT_DIR / "figures"
+figdir.mkdir(parents=True, exist_ok=True)
 
 # Load best model and the corresponding history
 best_model = tf.keras.models.load_model(best_global_model_path)
 best_history = fold_histories[best_fold_index_global]
-
-# Accuracy & Loss curves
-plt.figure(figsize=(12, 5))
-
-# Accuracy
-plt.subplot(1, 2, 1)
-plt.plot(best_history.history['accuracy'], label='Train Acc')
-plt.plot(best_history.history['val_accuracy'], label='Val Acc')
-plt.title('Accuracy')
-plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
-plt.legend(loc='lower right')
-
-# Loss
-plt.subplot(1, 2, 2)
-plt.plot(best_history.history['loss'], label='Train Loss')
-plt.plot(best_history.history['val_loss'], label='Val Loss')
-plt.title('Loss')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.legend(loc='upper right')
-
-plt.tight_layout()
-acc_loss_path = os.path.join(figdir, "bestfold_acc_loss.png")
-plt.savefig(acc_loss_path, dpi=300)
-plt.show()
-print(f"Saved accuracy/loss figure to: {acc_loss_path}")
 
 # ROC curve + AUC on best fold's validation set
 y_val_prob = best_model.predict(best_X_val, verbose=0).ravel()
@@ -258,11 +243,12 @@ print("\nClassification Report (best fold val set, thr=0.5):")
 print(classification_report(best_y_val, y_val_pred, digits=3))
 
 
-final_model_h5 = os.path.join(saving_path, "model83-new.h5")
-final_weights_h5 = os.path.join(saving_path, "model83_weights-new.h5")
+final_model_h5 = CNN_OUT_DIR / "model83.h5"
+final_weights_h5 = CNN_OUT_DIR / "model83_weights.h5"
 
-best_model.save(final_model_h5)              # full model in HDF5
-best_model.save_weights(final_weights_h5)    # weights-only in HDF5
+best_model.save(str(final_model_h5))            # full model in HDF5
+best_model.save_weights(str(final_weights_h5))  # weights-only in HDF5
+
 
 print(f"Saved full HDF5 model to: {final_model_h5}")
 print(f"Saved HDF5 weights to:    {final_weights_h5}")
@@ -285,3 +271,4 @@ plt.grid(True)
 plt.tight_layout()
 plt.savefig(os.path.join(figdir, "reliability_diagram.png"), dpi=300)
 plt.show()
+
