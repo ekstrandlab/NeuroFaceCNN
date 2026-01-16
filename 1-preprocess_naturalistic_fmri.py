@@ -21,12 +21,22 @@ import random
 TR = 1
 LAG = 4
 
-BASE_DIR = Path(os.environ.get("NNDB_ROOT", "NNDB_ROOT")).resolve()
-SAVE_DIR = Path(os.environ.get("OUT_DIR", "outputs/fnof-project")).resolve()
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+# Project layout
+NNDB_ROOT = Path(os.environ.get("NNDB_ROOT", PROJECT_ROOT / "NNDB_ROOT")).resolve()
+ALL_SUBJECTS_DIR = NNDB_ROOT / "all-subjects"
+STIMULI_DIR = NNDB_ROOT / "stimuli"
+
+# Output 
+SAVE_DIR = PROJECT_ROOT / "Output" / "2D-matrices"
 FACE_DIR = SAVE_DIR / "face"
 NOFACE_DIR = SAVE_DIR / "noface"
-BRAIN_MASKS = sorted(glob(str(BASE_DIR / "sub-*" / "anat" / "sub-*_T1w_mask.nii.gz")))
 
+BRAIN_MASKS = natural_sort(glob(str(ALL_SUBJECTS_DIR / "sub-*" / "anat" / "sub-*_T1w_mask.nii.gz")))
+
+SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
 def natural_sort(file_list):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
@@ -61,7 +71,7 @@ def extract_fmri_segments(task_list, reshaped_mask, indices):
     NOFACE_DIR.mkdir(parents=True, exist_ok=True)
     
     for task in task_list:
-        face_annotation_file = BASE_DIR / "stimuli" / f"stimuli-task-{task}_face-annotation.1D"
+        face_annotation_file = STIMULI_DIR / f"stimuli-task-{task}_face-annotation.1D"
         if not face_annotation_file.exists():
             print(f"Face annotation not found for task: {task}")
             continue
@@ -73,7 +83,8 @@ def extract_fmri_segments(task_list, reshaped_mask, indices):
             print(f"Error reading annotations for {task}: {e}")
             continue
 
-        fmri_files = glob(str(BASE_DIR / "sub-*" / "func" / f"sub-*_task-{task}_bold_preprocessedICA.nii.gz"))
+        fmri_files = glob(str(ALL_SUBJECTS_DIR / "sub-*" / "func" / f"sub-*_task-{task}_bold_preprocessedICA.nii.gz"))
+
 
         for fmri_file in fmri_files:
             subject_id = Path(fmri_file).parts[-3]
@@ -98,6 +109,8 @@ def extract_fmri_segments(task_list, reshaped_mask, indices):
                 segment = data[:, :, :, index:index+10]
                 reshaped = segment.reshape(-1, 10)[indices]
                 np.savetxt(sub_face_dir / f"{subject_id}_task-{task}_face-{i}.txt", reshaped, delimiter=',')
+                np.save(sub_face_dir / f"{subject_id}_task-{task}_face-{i}.npy", reshaped.astype(np.float32))
+
 
             count = 1
             for i in range(len(faces) - 1):
@@ -107,6 +120,9 @@ def extract_fmri_segments(task_list, reshaped_mask, indices):
                     segment = data[:, :, :, index:index+10]
                     reshaped = segment.reshape(-1, 10)[indices]
                     np.savetxt(sub_noface_dir / f"{subject_id}_task-{task}_noface-{count}.txt", reshaped, delimiter=',')
+                    np.save(sub_noface_dir / f"{subject_id}_task-{task}_noface-{count}.npy", reshaped.astype(np.float32))
+
+
                     count += 1
 
 
