@@ -145,16 +145,18 @@ Asadi, S. et al. (2025). *Computationally Efficient Deep Learning for Temporally
 
 NeuroFaceCNN-main/
   NNDB_ROOT/
-    all-subjects/          # Raw NNDb anatomical & functional fMRI data
-    stimuli/               # Face annotation files (.1D)
+    all-subjects/            # Raw NNDb anatomical & functional fMRI data
+    stimuli/                 # Face annotation files (.1D)
 
   Output/
-    2D-matrices/           # Voxel-by-time inputs (41489 × 10)
-    CNN-result/            # Trained CNN models & cross-validation results
-    IG-result/             # Integrated Gradients outputs
-      IG-2D-original/      # Raw IG matrices
-      IG-backed-to-brain/  # IG mapped back to NIfTI brain space
-      IG-averaged/         # Subject-level IG averages
-      IG-group-results/   # Group-level IG maps
-      figures/             # Surface visualizations & FFA overlays
+    2D-matrices/             # Voxel-by-time inputs (41489 × 10)
+    CNN-result/              # Trained CNN models & cross-validation results
+
+    IG-result/
+      IG-2D-original/        # Raw Integrated Gradients matrices
+      IG-backed-to-brain/    # IG mapped back to NIfTI brain space
+      IG-averaged/           # Subject-level averaged IG maps
+      IG-group-results/      # Group-level IG maps
+      figures/               # Surface visualizations & FFA overlays
+
     moment-by-moment-result/ # Continuous decoding results
