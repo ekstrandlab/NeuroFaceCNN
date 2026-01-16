@@ -21,9 +21,9 @@ import random
 TR = 1
 LAG = 4
 
-BASE_DIR = Path("/NaturalisticDatabase_V2")
-SAVE_DIR = Path("/fnof-project")
-FACE_DIR = SAVE_DIR / "faces"
+BASE_DIR = Path(os.environ.get("NNDB_ROOT", "NNDB_ROOT")).resolve()
+SAVE_DIR = Path(os.environ.get("OUT_DIR", "outputs/fnof-project")).resolve()
+FACE_DIR = SAVE_DIR / "face"
 NOFACE_DIR = SAVE_DIR / "noface"
 BRAIN_MASKS = sorted(glob(str(BASE_DIR / "sub-*" / "anat" / "sub-*_T1w_mask.nii.gz")))
 
