@@ -15,26 +15,30 @@ import nibabel as nib
 
 # CONFIG
 LABEL = "face"  # or "noface"
-
-BASE_DIR = r"D:\sarafiles\Face-Project"
-MASK_PATH = os.path.join(BASE_DIR, "85_subBrainMask_average_99.nii.gz")
-
-IG_INPUT_DIR = os.path.join(BASE_DIR, "IG_numpy", LABEL)
-OUTPUT_DIR = os.path.join(BASE_DIR, "IG_back_to_brain", LABEL)
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-
 EXPECTED_T = 10  # number of TRs per IG sample
 
 
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+MASK_PATH = PROJECT_ROOT / "Output"  / "85_subBrainMask_average.nii.gz"
+
+IG_ROOT = PROJECT_ROOT / "Output" / "IG-result"
+IG_INPUT_DIR = IG_ROOT / "IG-2D-original" / LABEL
+OUTPUT_DIR = IG_ROOT / "IG-backed-to-brain" / LABEL
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
 # Load brain mask
-if not os.path.exists(MASK_PATH):
+if not MASK_PATH.exists():
     raise FileNotFoundError(f"Mask not found: {MASK_PATH}")
 
-mask_img = nib.load(MASK_PATH)
+mask_img = nib.load(str(MASK_PATH))
 mask_data = mask_img.get_fdata()
 mask_shape = mask_data.shape
 
-print(f"Brain mask loaded with shape: {mask_shape}")
+print(f"Brain mask loaded: {MASK_PATH}")
+print(f"Mask shape: {mask_shape}")
+
 
 mask_flat = mask_data.reshape(-1)
 mask_indices = np.nonzero(mask_flat)[0]
@@ -66,15 +70,21 @@ def revert_to_brain(voxel_time: np.ndarray) -> nib.Nifti1Image:
 
 
 # Loop through subjects
+
+if not IG_INPUT_DIR.exists():
+    raise FileNotFoundError(f"IG input directory not found: {IG_INPUT_DIR}")
+
+sub_dirs = sorted(p for p in IG_INPUT_DIR.iterdir() if p.is_dir())
+if not sub_dirs:
+    raise RuntimeError(f"No subject folders found in {IG_INPUT_DIR}")
+
+print(f"\n Found {len(sub_dirs)} subjects \n")
+
 sub_folders = sorted(
     d for d in os.listdir(IG_INPUT_DIR)
     if os.path.isdir(os.path.join(IG_INPUT_DIR, d))
 )
 
-if not sub_folders:
-    raise RuntimeError(f"No subject folders found in {IG_INPUT_DIR}")
-
-print(f"Found {len(sub_folders)} subjects \n")
 
 for subj in sub_folders:
     subj_in = os.path.join(IG_INPUT_DIR, subj)
