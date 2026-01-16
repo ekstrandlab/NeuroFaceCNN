@@ -100,7 +100,7 @@ Surface visualization: subject-level and group-level cortical maps
 | `5-revert-IG-tobrain.py` | Maps 2D IG attributions back to brain space |
 | `6-average_IG_per_subject.py` | Aggregates and averages IG maps by subject |
 | `7-visualize_IG_surface_maps.py` | Projects IG maps onto fsaverage cortical surface |
-| `8-moment_by_moment_face_prediction.py` | Performs continuous CNN-based prediction across unseen fMRI |
+| `8-moment_by_moment_prediction.py` | Performs continuous CNN-based prediction across unseen fMRI |
 | `README.md` | Project overview and usage |
 
 ## Setup
@@ -142,13 +142,19 @@ Asadi, S. et al. (2025). *Computationally Efficient Deep Learning for Temporally
 
 
 ## Repository structure
-
 NeuroFaceCNN-main/
-├── NNDB_ROOT/                 # Raw NNDb data
-├── Output/                    # All generated results
-│   ├── 2D-matrices/           # Voxel-by-time inputs
-│   ├── CNN-result/            # Trained models
-│   ├── IG-result/             # Integrated Gradients outputs
-│   └── moment-by-moment-result/
-├── scripts/                 
-└── README.md
+├── NNDB_ROOT/                  # Raw NNDb fMRI data & face annotations
+│   ├── all-subjects/           # Subject-wise anat/func data
+│   └── stimuli/                # Face annotation files
+│
+└── Output/                    # All generated results
+   ├── 2D-matrices/            # Voxel-by-time inputs (41489 × 10)
+   ├── CNN-result/             # Trained CNN models & CV checkpoints
+   ├── IG-result/              # Integrated Gradients outputs
+   │   ├── IG-2D-original/     # Raw IG matrices
+   │   ├── IG-backed-to-brain/ # IG mapped back to NIfTI brain space
+   │   ├── IG-averaged/        # Subject-level IG averages
+   │   ├── IG-group-results/   # Group-level IG maps
+   │   └── figures/            # Surface visualizations & FFA overlays
+   └── moment-by-moment-result/# Continuous decoding results
+
