@@ -140,3 +140,94 @@ If you use this code, please cite:
 Asadi, S. et al. (2025). *Computationally Efficient Deep Learning for Temporally Preserved Face Classification in Naturalistic fMRI*.
 
 
+
+NeuroFaceCNN-main/
+│
+├── NNDB_ROOT/
+│   ├── all-subjects/
+│   │   ├── sub-01/
+│   │   │   ├── anat/
+│   │   │   │   └── sub-01_T1w_mask.nii.gz
+│   │   │   └── func/
+│   │   │       └── sub-01_task-<movie>_bold_preprocessedICA.nii.gz
+│   │   └── sub-XX/
+│   │       └── ...
+│   │
+│   └── stimuli/
+│       └── stimuli-task-<movie>_face-annotation.1D
+│
+├── Output/
+│   │
+│   ├── 2D-matrices/
+│   │   ├── <N>_subBrainMask_average.nii.gz
+│   │   ├── face/
+│   │   │   └── sub-XX/
+│   │   │       └── sub-XX_task-<movie>_face-<i>.npy
+│   │   └── noface/
+│   │       └── sub-XX/
+│   │           └── sub-XX_task-<movie>_noface-<i>.npy
+│   │
+│   ├── CNN-result/
+│   │   ├── best_cv_model.keras
+│   │   ├── model83.h5
+│   │   ├── model83_weights.h5
+│   │   └── cv_models/
+│   │       └── fold*_best.keras
+│   │
+│   ├── IG-result/
+│   │   ├── IG-2D-original/
+│   │   │   ├── face/
+│   │   │   │   └── sub-XX/
+│   │   │   │       └── IG_*.npy
+│   │   │   └── noface/
+│   │   │       └── sub-XX/
+│   │   │           └── IG_*.npy
+│   │   │
+│   │   ├── IG-backed-to-brain/
+│   │   │   ├── face/
+│   │   │   │   └── sub-XX/
+│   │   │   │       └── *_IG_backToBrain.nii.gz
+│   │   │   └── noface/
+│   │   │       └── sub-XX/
+│   │   │           └── *_IG_backToBrain.nii.gz
+│   │   │
+│   │   ├── IG-averaged/
+│   │   │   ├── face/
+│   │   │   │   └── sub-XX_face_avg_IG.nii.gz
+│   │   │   └── noface/
+│   │   │       └── sub-XX_noface_avg_IG.nii.gz
+│   │   │
+│   │   ├── IG-group-results/
+│   │   │   ├── face/
+│   │   │   │   └── Group_Average_face_IG.nii.gz
+│   │   │   └── noface/
+│   │   │       └── Group_Average_noface_IG.nii.gz
+│   │   │
+│   │   ├── figures/
+│   │   │   ├── group_averaged-IG-ventral_Face.png
+│   │   │   ├── group_averaged-IG-ventral_NoFace.png
+│   │   │   └── ffa-raw.png
+│   │   │
+│   │   └── ffa_association-test_z_FDR_0.01.nii
+│   │
+│   └── moment-by-moment-result/
+│       └── sub-XX/
+│           └── task-<movie>/
+│               ├── predictions.npy
+│               ├── predictions_binary.npy
+│               ├── plot_probability.png
+│               └── plot_binary.png
+│
+├── scripts/
+│   ├── 1_preprocess_fmri.py
+│   ├── 2_load_data.py
+│   ├── 3_train_cnn.py
+│   ├── 4_compute_IG.py
+│   ├── 5_revert_IG_to_brain.py
+│   ├── 6_average_subject_IG.py
+│   ├── 7_group_average_IG.py
+│   ├── 8_plot_group_surface.py
+│   ├── 9_moment_by_moment_prediction.py
+│   └── 10_plot_ffa_surface.py
+│
+└── README.md
