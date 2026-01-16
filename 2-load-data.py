@@ -3,16 +3,18 @@ import numpy as np
 import tensorflow as tf 
 import pickle
 import logging
+from pathlib import Path
 
 #logging set up
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-#base directory (change this path as needed)
-BASE_PATH = r"C:\Users\sara.asadi\Desktop\pypro"
 
-#subfolders
-FACE_FOLDER = "face"
-NOFACE_FOLDER = "noface"
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+MATRICES_DIR = PROJECT_ROOT / "Output" / "2D-matrices"
+FACE_DIR = MATRICES_DIR / "face"
+NOFACE_DIR = MATRICES_DIR / "noface"
+
 
 #counting the number of .txt files in all subject subfolders
 def count_text_files(folder_name):
@@ -49,15 +51,15 @@ def load_text_data(folder_name, limit=None):
 
 def main():
     logging.info("Counting input files...")
-    face_count = count_text_files(FACE_FOLDER)
-    noface_count = count_text_files(NOFACE_FOLDER)
-    logging.info(f"Found {face_count} '.txt' files in '{FACE_FOLDER}'")
-    logging.info(f"Found {noface_count} '.txt' files in '{NOFACE_FOLDER}'")
+    face_count = count_npy_files(FACE_DIR)
+    noface_count = count_npy_files(NOFACE_DIR)
+    logging.info(f"Found {face_count} '.npy' files in '{FACE_DIR}'")
+    logging.info(f"Found {noface_count} '.npy' files in '{NOFACE_DIR}'")
 
     logging.info("Loading data...")
-    face_data = load_text_data(FACE_FOLDER)
-    noface_data = load_text_data(NOFACE_FOLDER)
-
+    face_data = load_npy_data(FACE_DIR)
+    noface_data = load_npy_data(NOFACE_DIR)
+    
     logging.info("Constructing input arrays...")
     X = np.array(face_data + noface_data)
     #label
@@ -69,7 +71,8 @@ def main():
 
     logging.info(f"X shape: {X.shape}, y shape: {y.shape}, X size: {X.nbytes / 1e6:.2f} MB")
 
-    output_path = os.path.join(BASE_PATH, "fmri_data.pickle")
+
+    output_path = MATRICES_DIR / "fmri_data.pickle"
     logging.info(f"Saving preprocessed data to: {output_path}")
     with open(output_path, 'wb') as f:
         pickle.dump({'X': X, 'y': y}, f)
