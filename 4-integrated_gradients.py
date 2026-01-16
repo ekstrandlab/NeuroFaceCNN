@@ -41,14 +41,20 @@ from tensorflow.python.keras import backend as K
 K.set_learning_phase(0)  # inference mode (disable dropout/bn training)
 
 # CONFIG  
-label = "face"
+label = "face"  # "face" or "noface"
 
-root_dir = rf"D:\sarafiles\Face-Project\data-npy-seperately-for-deepexplain-one-by-one\{label}"
-save_root = rf"D:\sarafiles\Face-Project\IG\{label}"
-os.makedirs(save_root, exist_ok=True)
+PROJECT_ROOT = Path(__file__).resolve().parent
 
+# Input: 2D matrices per subject
+root_dir = PROJECT_ROOT / "Output" / "2D-matrices" / label
 
-model_weights = r"D:\sarafiles\Face-Project\best-result-cnn\model83_weights-new.h5"
+# Output: IG 2D original
+ig_root = PROJECT_ROOT / "Output" / "IG-result"
+save_root = ig_root / "IG-2D-original" / label
+save_root.mkdir(parents=True, exist_ok=True)
+
+# Model weights
+model_weights = PROJECT_ROOT / "Output" / "CNN-result" / "model83_weights.h5"
 
 # MODEL DEFINITION  
 def get_model():
